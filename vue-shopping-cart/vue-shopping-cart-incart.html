@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>VUE SHOPPING CART</title>
+<meta charset='utf8'>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<style>
+    table,th,td {
+        border:1px solid #aaa;
+    }
+    .prod-img {
+        float: left;
+        margin-right: 20px;
+        width: 200px;
+        height: 200px;
+    }
+    .item {
+        border-bottom: 1px solid #eee;
+    }
+    .item:before, .item:after {
+        content: " ";
+        display: table;
+    }
+    .item:after {
+        clear: both;
+    }
+    #emptyCart {
+        margin-top: 20px;
+    }
+    td {
+        padding: 5px;
+    }
+    [v-cloak] {
+    display: none;
+    }
+</style>
+</head>
+<body>
+    <div id="app">
+        <h2>Products</h2>
+        <div id="products">
+            <div class="item" :id="item.id" v-for="item in products">
+                <img :src="item.image" class="prod-img">
+                <p>{{ item.id }}</p>
+                <p>{{ item.name }}</p>
+                <p>{{ item.price }}</p>
+                <button class="add-to-cart" data-id="item.id" @click="addToCart(item)">Add to cart</button>
+            </div>
+        </div>
+        <h2>My Shopping Cart</h2>
+        <div id="cart">
+            <div v-if="cart.length == 0">No item in cart.</div>
+            <div v-else>
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Product Name</th>
+                        <th>Quantity</th>
+                        <th>Subtotal</th>
+                    </tr>
+                    <cart-item v-for="item in cart"
+                            :key="item.src"
+                            :id="item.id"
+                            :name="item.name"
+                            :price="item.price"
+                            :qty="item.qty"></cart-item>
+                    <tr>
+                        <td colspan="5">Total: 18500</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <button id="emptyCart">clear cart</button>
+    </div>
+
+    <script>
+        let data = {
+            products: null,
+            cart: []
+        }
+
+        let CartItem = {
+            // template 內不用寫 item.id，寫 id 就好
+            template: `
+            <tr :data-id="id">
+                <td class="id">{{ id }}</td>
+                <td class="name">{{ name }}</td>
+                <td class="price">{{ price }}</td>
+                <td class="sub">{{ qty * price }}</td>
+            </tr>
+            `,
+            props: {
+                id: {
+                    type: String,
+                    required: true
+                },
+                name: {
+                    type: String,
+                    required: true
+                },
+                price: {
+                    type: Number,
+                    required: true
+                },
+                qty: {
+                    type: Number,
+                    required: true
+                }
+            }
+        }
+        let vm = new Vue({
+            el: '#app',
+            data: data,
+            methods: {
+                loadProducts() {
+                    axios({
+                        method: 'get',
+                        url: 'products2.json',
+                        transformResponse: undefined
+                        // https://github.com/axios/axios/issues/907
+                    })
+                    .then((response) => {
+                        let res = JSON.parse(response.data)
+                        this.products = res.products
+                    })
+                },
+                addToCart(item) {
+                    if(data.cart.length > 0) {
+                        let inCart = false
+                        for (i = 0; i < data.cart.length; i++) {
+                            if (data.cart[i].id === item.id) {
+                                inCart = true;  // in cart 就不要再跑迴圈，否則會把不是這一回合的也加上去
+                                console.log(i, item.id, inCart)
+                                data.cart[i].qty = data.cart[i].qty + 1
+                                break
+                            }
+                        }
+                        if(!inCart) {
+                            let newItem = {
+                                "id": item.id,
+                                "name": item.name,
+                                "price": item.price,
+                                "qty": 1
+                            }
+                            data.cart.push(newItem)
+                        }
+                    } else {
+                        let newItem = {
+                            "id": item.id,
+                            "name":  item.name,
+                            "price":  item.price,
+                            "qty": 1
+                        }
+                        data.cart.push(newItem)
+                    }
+                }
+            },
+            components: {
+                CartItem
+            },
+            created() {
+                this.loadProducts()
+            }
+        })
+    </script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>VUE SHOPPING CART</title>
+<meta charset='utf8'>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<style>
+    table,th,td {
+        border:1px solid #aaa;
+    }
+    .prod-img {
+        float: left;
+        margin-right: 20px;
+        width: 200px;
+        height: 200px;
+    }
+    .item {
+        border-bottom: 1px solid #eee;
+    }
+    .item:before, .item:after {
+        content: " ";
+        display: table;
+    }
+    .item:after {
+        clear: both;
+    }
+    #emptyCart {
+        margin-top: 20px;
+    }
+    td {
+        padding: 5px;
+    }
+    [v-cloak] {
+    display: none;
+    }
+</style>
+</head>
+<body>
+    <div id="app">
+        <h2>Products</h2>
+        <div id="products">
+            <div class="item" :id="item.id" v-for="item in products">
+                <img :src="item.image" class="prod-img">
+                <p>{{ item.id }}</p>
+                <p>{{ item.name }}</p>
+                <p>{{ item.price }}</p>
+                <button class="add-to-cart" data-id="item.id">Add to cart</button>
+            </div>
+        </div>
+        <h2>My Shopping Cart</h2>
+        <div id="cart">
+            <p v-if="!cart">No item in cart.</p>
+            <table v-else>
+                <tr>
+                    <th>ID</th>
+                    <th>Product Name</th>
+                    <th>Subtotal</th>
+                    <th>Quantity</th>
+                    <th>Delete</th>
+                </tr>
+                <tr id="cart-product7">
+                    <td class="id">product7</td>
+                    <td class="name">Samsung Galaxy Note 4</td>
+                    <td class="sub">18500</td>
+                    <td>
+                        <select data-id="qty-product7">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                        </select>
+                    </td>
+                    <td>
+                        <img src="images/trash.gif" data-id="del-product7">
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="5">Total: 18500</td>
+                </tr>
+            </table>
+        </div>
+        <button id="emptyCart">clear cart</button>
+    </div>
+
+    <script>
+        let data = {
+            products: null,
+            cart: null
+        }
+        let vm = new Vue({
+            el: '#app',
+            data: data,
+            methods: {
+                loadProducts() {
+                    axios({
+                        method: 'get',
+                        url: 'products2.json',
+                        transformResponse: undefined
+
+                        // responseType: 'json' 返回 null
+                        // responseType: 'text' Uncaught (in promise) SyntaxError: Unexpected token o in JSON at position 1
+                        // at JSON.parse(<anonymous>)
+                        // at axios.then
+                        // https://github.com/axios/axios/issues/907
+                    })
+                    .then((response) => {
+                        let res = JSON.parse(response.data)
+                        this.products = res.products
+                    })
+                }
+            },
+            created() {
+                this.loadProducts()
+            }
+        })
+    </script>
+</body>
+</html>
